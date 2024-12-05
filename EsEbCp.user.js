@@ -142,19 +142,25 @@
   }
 
   function ebayMain() {
-    const clipboardBtn = createElement("div", "Скопировать", {
-      position: "fixed",
-      top: "100px",
-      left: "20px",
-      backgroundColor: "tomato",
-      color: "white",
-      padding: "10px 10px",
-      borderRadius: "5px",
-      fontSize: "14px",
-      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-      zIndex: "1000",
-      cursor: "pointer",
-    });
+    const clipboardBtn = createElement(
+      "div",
+      "Скопировать",
+      {
+        position: "fixed",
+        top: "100px",
+        left: "20px",
+        backgroundColor: "tomato",
+        color: "white",
+        padding: "10px 10px",
+        borderRadius: "5px",
+        fontSize: "14px",
+        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+        zIndex: "1000",
+        cursor: "pointer",
+      },
+      undefined,
+      "clipboardBtn"
+    );
 
     try {
       const ebaySelectors = [
