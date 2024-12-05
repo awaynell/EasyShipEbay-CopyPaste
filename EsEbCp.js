@@ -4,9 +4,9 @@
 // @version      1.0
 // @description  Объединение двух скриптов для разных сайтов
 // @author       Clovett
+// @downloadURL  https://raw.githubusercontent.com/awaynell/EasyShipEbay-CopyPaste/refs/heads/main/EsEbCp.js
 // @match        https://www.ebay.com/itm/*
 // @match        https://lk.easyship.ru/ru/orders/Incoming/*
-// @match        http://localhost:5500/*
 // ==/UserScript==
 
 (function () {
@@ -113,7 +113,9 @@
     try {
       const titleElement = document.querySelector(".x-item-title__mainTitle");
       const priceElement = document.querySelector(".x-price-primary");
-      const brandElement = document.querySelector(".ux-labels-values--brand > dd");
+      const brandElement = document.querySelector(
+        ".ux-labels-values--brand > dd"
+      );
 
       if (!titleElement || !priceElement) {
         console.error("Не удалось найти элементы на странице");
@@ -145,13 +147,10 @@
       ebayMain();
     }
 
-    if (
-      hostname.includes("lk.easyship.ru") ||
-      hostname.includes("localhost")
-    ) {
+    if (hostname.includes("lk.easyship.ru") || hostname.includes("localhost")) {
       easyShipMain();
     }
   }
 
-   window.addEventListener("load", main)
+  window.addEventListener("load", main);
 })();
