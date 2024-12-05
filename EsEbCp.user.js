@@ -4,34 +4,59 @@
 // @version      1.0
 // @description  Объединение двух скриптов для разных сайтов
 // @author       Clovett
-// @downloadURL  https://raw.githubusercontent.com/awaynell/EasyShipEbay-CopyPaste/main/EsEbCp.js
 // @match        https://www.ebay.com/itm/*
-// @match        https://lk.easyship.ru/ru/orders/Incoming/*
+// @match        https://lk.easyship.ru/*
 // ==/UserScript==
 
 (function () {
   "use strict";
 
-  const hostname = window.location.hostname;
+  let inputs = [];
 
   function formatPrice(price) {
     return price.replace(/^\D+/g, "").replace(",", ".");
   }
 
-  function createElement(tag, textContent, style, parentTag) {
+  function createElement(tag, textContent, style, parentTag, id) {
     const elem = document.createElement(tag);
 
     elem.textContent = textContent;
 
+    elem.id = id;
+
     Object.assign(elem.style, style);
 
     if (parentTag) {
-      document.querySelector(parentTag).appendChild(elem);
+      document.querySelector(parentTag)?.appendChild(elem);
     } else {
       document.body.appendChild(elem);
     }
 
     return elem;
+  }
+
+  function observeModal() {
+    const modalSelector = 'div[role="dialog"][aria-modal="true"]';
+    const observer = new MutationObserver(handleMutations);
+
+    function handleMutations(mutations) {
+      for (const mutation of mutations) {
+        if (mutation.addedNodes.length > 0) {
+          const modals = document.querySelectorAll(modalSelector);
+          const [first, second] = modals;
+
+          if (second) {
+            inputs = second.querySelectorAll("input");
+            easyShipMain();
+            break;
+          }
+        }
+      }
+    }
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => observer.disconnect();
   }
 
   function copyToClipboard(content) {
@@ -56,42 +81,63 @@
   }
 
   function handleInputs(content) {
-    const inputs = document.querySelectorAll("input");
-
-    const titleInput = inputs[0];
-    const brandInput = inputs[1];
-    const quantityInput = inputs[2];
-    const priceInput = inputs[3];
-    const linkInput = inputs[4];
-
     const parsedContent = JSON.parse(content);
 
-    titleInput.value = parsedContent.title;
-    brandInput.value = parsedContent.brand;
-    quantityInput.value = parsedContent.quantity;
-    priceInput.value = formatPrice(parsedContent.price);
-    linkInput.value = parsedContent.link;
+    const fields = ["title", "brand", "quantity", "price", "link"];
+
+    fields.forEach((field, index) => {
+      if (inputs[index]) {
+        inputs[index].defaultValue =
+          field === "price"
+            ? formatPrice(parsedContent[field])
+            : parsedContent[field];
+
+        const event = new Event("input", { bubbles: true });
+        inputs[index].dispatchEvent(event);
+      }
+    });
   }
 
   function easyShipMain() {
+    const parentSelector =
+      "body > div:nth-child(24) > div > div > div.modal-body > div > div.shrink.buttons.margin-top-35";
+
+    const parentElem = document.querySelector(parentSelector);
+
+    Object.assign(parentElem.style, {
+      display: "flex",
+      position: "relative",
+    });
+    const pasteBtnElem = document.querySelector("#pasteBtn");
+
+    if (pasteBtnElem) return;
+
     const pasteBtn = createElement(
       "div",
       "Вставить",
       {
-        backgroundColor: "white",
+        position: "absolute",
+        bottom: "0px",
+        right: "20px",
+        backgroundColor: "#cddc39",
+        borderRadius: "10px",
         cursor: "pointer",
         width: "fit-content",
         height: "fit-content",
-        color: "tomato",
+        zIndex: "1000",
+        border: "2px solid #fdf5e6",
+        color: "#fdf5e6",
+        padding: "10px",
       },
-      "div.shrink.buttons.margin-top-35 > div"
+      parentSelector,
+      "pasteBtn"
     );
 
     pasteBtn.addEventListener("click", () => {
       navigator.clipboard
         .readText()
         .then((content) => handleInputs(content))
-        .catch((e) => console.log("script error", e));
+        .catch((e) => console.log("clipboard reading error", e));
     });
   }
 
@@ -111,20 +157,29 @@
     });
 
     try {
-      const titleElement = document.querySelector(".x-item-title__mainTitle");
-      const priceElement = document.querySelector(".x-price-primary");
-      const brandElement = document.querySelector(
-        ".ux-labels-values--brand > dd"
+      const ebaySelectors = [
+        ".x-item-title__mainTitle",
+        ".x-price-primary",
+        ".ux-labels-values--brand > dd",
+      ];
+
+      const ebayElements = ebaySelectors.map((selector) =>
+        document.querySelector(selector)
       );
 
-      if (!titleElement || !priceElement) {
+      const [titleElement, priceElement, brandElement] = ebayElements;
+
+      const ebayElementsTextContent = ebayElements.map((element) => {
+        return element.textContent;
+      });
+
+      const [title, price, brand] = ebayElementsTextContent;
+
+      if (!titleElement || !priceElement || !brandElement) {
         console.error("Не удалось найти элементы на странице");
         return;
       }
 
-      const title = titleElement.textContent;
-      const price = priceElement.textContent;
-      const brand = brandElement.textContent;
       const quantity = 1;
       const link = window.location.href.split("?")[0];
 
@@ -135,20 +190,26 @@
           copyToClipboard(JSON.stringify(result))
         );
       } catch (e) {
-        console.error("script error onclick", e);
+        console.error("clipboard button error on click", e);
       }
     } catch (e) {
-      console.error("script error", e);
+      console.error("ebayMain func error", e);
     }
   }
 
   function main() {
-    if (hostname.includes("ebay.com")) {
+    const hostname = window.location.hostname;
+
+    const ebayHostname = "ebay.com";
+    const easyShipHostname = "easyship.ru";
+    const _localhost = "localhost";
+
+    if (hostname.includes(ebayHostname)) {
       ebayMain();
     }
 
-    if (hostname.includes("lk.easyship.ru") || hostname.includes("localhost")) {
-      easyShipMain();
+    if (hostname.includes(easyShipHostname) || hostname.includes(_localhost)) {
+      observeModal();
     }
   }
 
