@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         EasyShipEbay CopyPaste
-// @namespace    http://tampermonkey.net/
+// @namespace    https://github.com/awaynell/EasyShipEbay-CopyPaste
 // @version      1.0
 // @description  Объединение двух скриптов для разных сайтов
 // @author       Clovett
-// @downloadURL  https://raw.githubusercontent.com/awaynell/EasyShipEbay-CopyPaste/refs/heads/main/EsEbCp.js
+// @downloadURL  https://raw.githubusercontent.com/awaynell/EasyShipEbay-CopyPaste/main/EsEbCp.js
 // @match        https://www.ebay.com/itm/*
 // @match        https://lk.easyship.ru/ru/orders/Incoming/*
 // ==/UserScript==
