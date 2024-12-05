@@ -8,7 +8,7 @@
    - [Opera](https://addons.opera.com/en/extensions/details/tampermonkey-beta/)
    - Альтернатива для [Safari](https://apps.apple.com/app/userscripts/id1463298887)
 
-2. Установите [скрипт](https://raw.githubusercontent.com/awaynell/EasyShipEbay-CopyPaste/main/EsEbCp.js):
+2. Установите [скрипт](https://github.com/awaynell/EasyShipEbay-CopyPaste/raw/main/EsEbCp.user.js):
 
    - Нажмите на ссылку.
    - Tampermonkey откроет страницу установки. Нажмите **Install**.
