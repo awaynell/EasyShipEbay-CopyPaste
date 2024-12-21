@@ -99,16 +99,19 @@
   }
 
   function easyShipMain(modal) {
-    const parentSelector =
-      "div.modal-body > div > div.shrink.buttons.margin-top-35";
+    console.log("modal", modal);
+
+    const parentSelector = "div > div.shrink.buttons.margin-top-35";
 
     const parentElem = modal.querySelector(parentSelector);
+
+    console.log("parentModal", parentElem);
 
     Object.assign(parentElem.style, {
       display: "flex",
       position: "relative",
     });
-    const pasteBtnElem = document.querySelector("#pasteBtn");
+    const pasteBtnElem = modal.querySelector("#pasteBtn");
 
     if (pasteBtnElem) return;
 
