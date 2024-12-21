@@ -202,7 +202,7 @@
     );
 
     document.addEventListener("keydown", (e) => {
-      if (e.keyCode === 17 && e.keyCode === 81) {
+      if (e.ctrlKey && e.key === "q") {
         navigator.clipboard
           .readText()
           .then((content) => handleInputs(content))
@@ -269,7 +269,7 @@
       const result = { title, price, quantity, link, brand };
 
       document.addEventListener("keydown", (e) => {
-        if (e.keyCode === 17 && e.keyCode === 81) {
+        if (e.ctrlKey && e.key === "q") {
           copyToClipboard(JSON.stringify(result));
         }
       });
