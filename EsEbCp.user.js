@@ -98,11 +98,11 @@
     });
   }
 
-  function easyShipMain() {
+  function easyShipMain(modal) {
     const parentSelector =
-      "body > div:nth-child(24) > div > div > div.modal-body > div > div.shrink.buttons.margin-top-35";
+      "div.modal-body > div > div.shrink.buttons.margin-top-35";
 
-    const parentElem = document.querySelector(parentSelector);
+    const parentElem = modal.querySelector(parentSelector);
 
     Object.assign(parentElem.style, {
       display: "flex",
