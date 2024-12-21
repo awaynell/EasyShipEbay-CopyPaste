@@ -112,9 +112,7 @@
         // Извлекаем ссылку на продукт
         const linkElement = item.querySelector(".order-item__info .link");
 
-        const productLink =
-          `https://creations.mattel.com${linkElement?.href}` ||
-          "Ссылка не найдена";
+        const productLink = `${linkElement?.href}` || "Ссылка не найдена";
         const productName =
           linkElement?.textContent.trim() || "Название не найдено";
 
@@ -203,6 +201,15 @@
       "pasteBtn"
     );
 
+    document.addEventListener("keydown", (e) => {
+      if (e.keyCode === 17 && e.keyCode === 81) {
+        navigator.clipboard
+          .readText()
+          .then((content) => handleInputs(content))
+          .catch((e) => console.log("clipboard reading error", e));
+      }
+    });
+
     pasteBtn.addEventListener("click", () => {
       navigator.clipboard
         .readText()
@@ -260,6 +267,12 @@
       const link = window.location.href.split("?")[0];
 
       const result = { title, price, quantity, link, brand };
+
+      document.addEventListener("keydown", (e) => {
+        if (e.keyCode === 17 && e.keyCode === 81) {
+          copyToClipboard(JSON.stringify(result));
+        }
+      });
 
       try {
         clipboardBtn.addEventListener("click", () =>
