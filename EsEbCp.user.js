@@ -47,7 +47,7 @@
 
           if (second) {
             inputs = second.querySelectorAll("input");
-            easyShipMain();
+            easyShipMain(modal);
             break;
           }
         }
