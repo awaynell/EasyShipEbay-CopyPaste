@@ -6,6 +6,7 @@
 // @author       Clovett
 // @match        https://www.ebay.com/itm/*
 // @match        https://lk.easyship.ru/*
+// @match        https://creations.mattel.com/*
 // ==/UserScript==
 
 (function () {
@@ -96,6 +97,77 @@
         inputs[index].dispatchEvent(event);
       }
     });
+  }
+
+  function creationsMattelMain() {
+    try {
+      const parentTable = ".order__items";
+
+      const parentTableElem = document.querySelector(parentTable);
+
+      const orderItems = parentTableElem.querySelectorAll("tr.order-item");
+
+      // Проходимся по каждому найденному элементу
+      orderItems.forEach((item) => {
+        // Извлекаем ссылку на продукт
+        const linkElement = item.querySelector(".order-item__info .link");
+
+        const productLink =
+          `https://creations.mattel.com${linkElement?.href}` ||
+          "Ссылка не найдена";
+        const productName =
+          linkElement?.textContent.trim() || "Название не найдено";
+
+        // Извлекаем цену
+        const priceElement = item.querySelector(".order-item__unit-price");
+
+        const productPrice =
+          priceElement?.textContent.trim() || "Цена не найдена";
+
+        // Извлекаем количество
+        const quantityElement = item.querySelector(".order-item__quantity");
+
+        const productQuantity =
+          quantityElement?.textContent.trim() || "Количество не найдено";
+
+        // Создаем кнопку
+        const clipboardBtn = createElement(
+          "div",
+          "Скопировать",
+          {
+            position: "fixed",
+            top: "100px",
+            left: "20px",
+            backgroundColor: "tomato",
+            color: "white",
+            padding: "10px 10px",
+            borderRadius: "5px",
+            fontSize: "14px",
+            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+            zIndex: "1000",
+            cursor: "pointer",
+          },
+          undefined,
+          "clipboardBtn"
+        );
+
+        // Добавляем кнопку в конец строки
+        item.appendChild(clipboardBtn);
+
+        clipboardBtn.addEventListener("click", () => {
+          const result = {
+            title: productName,
+            price: productPrice,
+            quantity: productQuantity,
+            link: productLink,
+          };
+
+          copyToClipboard(JSON.stringify(result));
+        });
+      });
+    } catch (e) {
+      console.error("ebayMain func error", e);
+    }
   }
 
   function easyShipMain(modal) {
@@ -211,6 +283,7 @@
 
     const ebayHostname = "ebay.com";
     const easyShipHostname = "easyship.ru";
+    const creationsMattel = "creations.mattel.com";
     const _localhost = "localhost";
 
     if (hostname.includes(ebayHostname)) {
@@ -219,6 +292,10 @@
 
     if (hostname.includes(easyShipHostname) || hostname.includes(_localhost)) {
       observeModal();
+    }
+
+    if (hostname.includes(creationsMattel)) {
+      creationsMattelMain();
     }
   }
 
