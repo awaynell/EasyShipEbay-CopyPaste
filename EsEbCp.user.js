@@ -201,8 +201,10 @@
       "pasteBtn"
     );
 
+    document.body.focus();
+
     document.addEventListener("keydown", (e) => {
-      if (e.ctrlKey && e.key === "q") {
+      if ((e.ctrlKey && e.key === "q") || e.key === "й") {
         navigator.clipboard
           .readText()
           .then((content) => handleInputs(content))
@@ -268,8 +270,10 @@
 
       const result = { title, price, quantity, link, brand };
 
+      document.body.focus();
+
       document.addEventListener("keydown", (e) => {
-        if (e.ctrlKey && e.key === "q") {
+        if ((e.ctrlKey && e.key === "q") || e.key === "й") {
           copyToClipboard(JSON.stringify(result));
         }
       });
