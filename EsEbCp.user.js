@@ -36,7 +36,7 @@
     return elem;
   }
 
-  function observeModal() {
+  function observeModal(onModalDetected) {
     const modalSelector = 'div[role="dialog"][aria-modal="true"]';
     const observer = new MutationObserver(handleMutations);
 
@@ -48,7 +48,7 @@
 
           if (second) {
             inputs = second.querySelectorAll("input");
-            easyShipMain(second);
+            onModalDetected(second);
             break;
           }
         }
@@ -80,6 +80,61 @@
       notification.remove();
     }, 3000);
   }
+
+  const handleEasyShipModal = (modal) => {
+    console.log("modal", modal);
+    const parentSelector = "div > div.shrink.buttons.margin-top-35";
+
+    const parentElem = modal.querySelector(parentSelector);
+
+    Object.assign(parentElem.style, {
+      display: "flex",
+      position: "relative",
+    });
+
+    const pasteBtnElem = modal.querySelector("#pasteBtn");
+
+    if (pasteBtnElem) return;
+
+    const pasteBtn = createElement(
+      "div",
+      "Вставить",
+      {
+        position: "absolute",
+        bottom: "0px",
+        right: "20px",
+        backgroundColor: "#cddc39",
+        borderRadius: "10px",
+        cursor: "pointer",
+        width: "fit-content",
+        height: "fit-content",
+        zIndex: "1000",
+        border: "2px solid #fdf5e6",
+        color: "#fdf5e6",
+        padding: "10px",
+      },
+      parentSelector,
+      "pasteBtn"
+    );
+
+    document.body.focus();
+
+    document.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey && e.key === "q") || e.key === "й") {
+        navigator.clipboard
+          .readText()
+          .then((content) => handleInputs(content))
+          .catch((e) => console.log("clipboard reading error", e));
+      }
+    });
+
+    pasteBtn.addEventListener("click", () => {
+      navigator.clipboard
+        .readText()
+        .then((content) => handleInputs(content))
+        .catch((e) => console.log("clipboard reading error", e));
+    });
+  };
 
   function handleInputs(content) {
     const parsedContent = JSON.parse(content);
@@ -163,61 +218,12 @@
     }
   }
 
-  function easyShipMain(modal) {
-    console.log("modal", modal);
-
-    const parentSelector = "div > div.shrink.buttons.margin-top-35";
-
-    const parentElem = modal.querySelector(parentSelector);
-
-    console.log("parentModal", parentElem);
-
-    Object.assign(parentElem.style, {
-      display: "flex",
-      position: "relative",
-    });
-    const pasteBtnElem = modal.querySelector("#pasteBtn");
-
-    if (pasteBtnElem) return;
-
-    const pasteBtn = createElement(
-      "div",
-      "Вставить",
-      {
-        position: "absolute",
-        bottom: "0px",
-        right: "20px",
-        backgroundColor: "#cddc39",
-        borderRadius: "10px",
-        cursor: "pointer",
-        width: "fit-content",
-        height: "fit-content",
-        zIndex: "1000",
-        border: "2px solid #fdf5e6",
-        color: "#fdf5e6",
-        padding: "10px",
-      },
-      parentSelector,
-      "pasteBtn"
-    );
-
-    document.body.focus();
-
-    document.addEventListener("keydown", (e) => {
-      if ((e.ctrlKey && e.key === "q") || e.key === "й") {
-        navigator.clipboard
-          .readText()
-          .then((content) => handleInputs(content))
-          .catch((e) => console.log("clipboard reading error", e));
-      }
-    });
-
-    pasteBtn.addEventListener("click", () => {
-      navigator.clipboard
-        .readText()
-        .then((content) => handleInputs(content))
-        .catch((e) => console.log("clipboard reading error", e));
-    });
+  function easyShipMain() {
+    try {
+      observeModal(handleEasyShipModal);
+    } catch (e) {
+      console.error("easyShipMain func error", e);
+    }
   }
 
   function ebayMain() {
@@ -303,7 +309,7 @@
     }
 
     if (hostname.includes(easyShipHostname) || hostname.includes(_localhost)) {
-      observeModal();
+      easyShipMain();
     }
 
     if (hostname.includes(creationsMattel)) {
