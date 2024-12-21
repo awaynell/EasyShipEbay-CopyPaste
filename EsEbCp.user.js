@@ -135,13 +135,12 @@
           "div",
           "Скопировать",
           {
+            position: "relative",
             backgroundColor: "tomato",
             color: "white",
             padding: "10px 10px",
             borderRadius: "5px",
             fontSize: "14px",
-            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-            cursor: "pointer",
           },
           undefined,
           "clipboardBtn"
