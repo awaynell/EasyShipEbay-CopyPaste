@@ -317,5 +317,5 @@
     }
   }
 
-  window.addEventListener("load", main);
+  main();
 })();
