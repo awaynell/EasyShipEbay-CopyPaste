@@ -14,6 +14,8 @@
 
   let inputs = [];
 
+  let easyShipClipboardItemsCount = 0;
+
   function formatPrice(price) {
     return price.replace(/^\D+/g, "").replace(",", ".");
   }
@@ -35,6 +37,25 @@
 
     return elem;
   }
+
+  const waitForElement = (selector, parent, timeout = 5000) =>
+    new Promise((resolve, reject) => {
+      const interval = 100;
+      const startTime = Date.now();
+
+      const checkElement = () => {
+        const element = parent.querySelector(selector);
+        if (element) {
+          resolve(element);
+        } else if (Date.now() - startTime > timeout) {
+          reject(new Error("Элемент не найден за отведенное время"));
+        } else {
+          setTimeout(checkElement, interval);
+        }
+      };
+
+      checkElement();
+    });
 
   function observeModal(onModalDetected) {
     const modalSelector = 'div[role="dialog"][aria-modal="true"]';
@@ -119,21 +140,72 @@
 
     document.body.focus();
 
+    const pasteBtnClickHandler = () => {
+      navigator.clipboard
+        .readText()
+        .then((content) => {
+          const parsedContent = JSON.parse(content);
+          if (Array.isArray(parsedContent) && parsedContent.length > 1) {
+            console.log("parsed content with length > 1", parsedContent);
+
+            handleInputs(JSON.stringify(parsedContent[0]));
+
+            waitForElement("div.shrink.buttons > div > div > span", modal, 1000)
+              .then((addItemNewModalBtn) => {
+                console.log("Кнопка добавления найдена!", addItemNewModalBtn);
+                addItemNewModalBtn.click();
+              })
+              .catch((error) => console.error(error.message));
+
+            const parsedContentWithoutCurrentItemLength =
+              parsedContent.slice(1).length;
+
+            easyShipClipboardItemsCount = parsedContentWithoutCurrentItemLength;
+
+            console.log(
+              "current easyShipClipboardItemsCount",
+              easyShipClipboardItemsCount
+            );
+
+            const readyToCopyContent =
+              parsedContentWithoutCurrentItemLength > 1
+                ? JSON.stringify(parsedContent.slice(1))
+                : JSON.stringify(parsedContent.slice(1)[0]);
+
+            console.log("readyToCopyContent", readyToCopyContent);
+
+            copyToClipboard(readyToCopyContent);
+
+            return;
+          }
+
+          if (easyShipClipboardItemsCount === 1) {
+            easyShipClipboardItemsCount = 0;
+          }
+
+          handleInputs(content);
+
+          const saveBtn = document.querySelector(
+            "div.shrink.buttons.margin-top-35 > div.button.radius-20.hover-highlight.pos-relative.bg-green-gradient.width-275 > div"
+          );
+          saveBtn.click();
+        })
+        .catch((e) => console.log("clipboard reading error", e));
+    };
+
+    if (easyShipClipboardItemsCount !== 0) {
+      pasteBtnClickHandler();
+
+      return;
+    }
+
     document.addEventListener("keydown", (e) => {
       if ((e.ctrlKey && e.key === "q") || e.key === "й") {
-        navigator.clipboard
-          .readText()
-          .then((content) => handleInputs(content))
-          .catch((e) => console.log("clipboard reading error", e));
+        pasteBtnClickHandler();
       }
     });
 
-    pasteBtn.addEventListener("click", () => {
-      navigator.clipboard
-        .readText()
-        .then((content) => handleInputs(content))
-        .catch((e) => console.log("clipboard reading error", e));
-    });
+    pasteBtn.addEventListener("click", pasteBtnClickHandler);
   };
 
   function handleInputs(content) {
@@ -261,7 +333,7 @@
       const [titleElement, priceElement, brandElement] = ebayElements;
 
       const ebayElementsTextContent = ebayElements.map((element) => {
-        return element.textContent;
+        return element?.textContent || "";
       });
 
       const [title, price, brand] = ebayElementsTextContent;
@@ -317,5 +389,5 @@
     }
   }
 
-  main();
+  window.addEventListener("load", main);
 })();
