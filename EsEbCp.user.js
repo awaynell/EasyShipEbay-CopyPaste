@@ -82,7 +82,6 @@
   }
 
   const handleEasyShipModal = (modal) => {
-    console.log("modal", modal);
     const parentSelector = "div > div.shrink.buttons.margin-top-35";
 
     const parentElem = modal.querySelector(parentSelector);
@@ -261,15 +260,10 @@
       const [titleElement, priceElement, brandElement] = ebayElements;
 
       const ebayElementsTextContent = ebayElements.map((element) => {
-        return element.textContent;
+        return element?.textContent || "";
       });
 
       const [title, price, brand] = ebayElementsTextContent;
-
-      if (!titleElement || !priceElement || !brandElement) {
-        console.error("Не удалось найти элементы на странице");
-        return;
-      }
 
       const quantity = 1;
       const link = window.location.href.split("?")[0];
