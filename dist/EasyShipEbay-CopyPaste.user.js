@@ -1,6 +1,7 @@
 // ==UserScript==
 // @name        EasyShipEbay-CopyPaste
 // @version     0.2.0
+// @match       https://order.ebay.com/ord/*
 // @match       https://www.ebay.com/itm/*
 // @match       https://lk.easyship.ru/*
 // @match       https://creations.mattel.com/*
@@ -45,7 +46,27 @@
       notification.remove();
     }, 3e3);
   }
-  function ebayMain() {
+  const waitForElement = (selector, parent, timeout = 5e3) => {
+    const startTime = Date.now();
+    const interval = 100;
+    return new Promise((resolve, reject) => {
+      const checkElement = () => {
+        const element = parent.querySelector(selector);
+        if (element) {
+          resolve(element);
+        } else if (Date.now() - startTime > timeout) {
+          reject(new Error(`Element not found within ${timeout}ms`));
+        } else {
+          globalThis.setTimeout(checkElement, interval);
+        }
+      };
+      checkElement();
+    });
+  };
+  const pathname = window.location.pathname;
+  const isEbayItem = pathname.startsWith("/itm");
+  const isEbayOrder = pathname.startsWith("/ord");
+  function handleEbayItem() {
     const clipboardBtn = createElement(
       "div",
       "\u0421\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u0442\u044C",
@@ -65,36 +86,90 @@
       void 0,
       "clipboardBtn"
     );
+    const ebaySelectors = [
+      ".x-item-title__mainTitle",
+      ".x-price-primary",
+      ".ux-labels-values--brand > dd"
+    ];
+    const ebayElements = ebaySelectors.map(
+      (selector) => document.querySelector(selector)
+    );
+    const ebayElementsTextContent = ebayElements.map((element) => {
+      return element?.textContent || "";
+    });
+    const [title, price, brand] = ebayElementsTextContent;
+    const quantity = 1;
+    const link = window.location.href.split("?")[0];
+    const result = { title, price, quantity, link, brand };
+    document.body.focus();
+    document.addEventListener("keydown", (e) => {
+      if (e.ctrlKey && e.key === "q" || e.key === "\u0439") {
+        copyToClipboard(JSON.stringify(result));
+      }
+    });
     try {
-      const ebaySelectors = [
-        ".x-item-title__mainTitle",
-        ".x-price-primary",
-        ".ux-labels-values--brand > dd"
-      ];
-      const ebayElements = ebaySelectors.map(
-        (selector) => document.querySelector(selector)
+      clipboardBtn.addEventListener(
+        "click",
+        () => copyToClipboard(JSON.stringify(result))
       );
-      const [titleElement, priceElement, brandElement] = ebayElements;
-      const ebayElementsTextContent = ebayElements.map((element) => {
-        return element?.textContent || "";
+    } catch (e) {
+      console.error("clipboard button error on click", e);
+    }
+  }
+  function handleEbayOrder() {
+    const clipboardBtn = createElement(
+      "div",
+      "\u0421\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u0442\u044C",
+      {
+        position: "relative",
+        backgroundColor: "tomato",
+        color: "white",
+        padding: "10px 10px",
+        borderRadius: "5px",
+        fontSize: "14px",
+        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+        zIndex: "1000",
+        cursor: "pointer"
+      },
+      "item-container-title",
+      "clipboardBtn"
+    );
+    const orderItems = document.querySelectorAll(".item-card");
+    console.log("orderItems", orderItems);
+    const readyToCopyArr = [];
+    orderItems.forEach((item) => {
+      const title = item.querySelector(".item-title .eui-text-span span")?.textContent || "";
+      const price = item.querySelector(".item-price .eui-text-span span")?.textContent || "";
+      const quantityElement = item.querySelector(
+        ".item-aspect-value .eui-text-span span.SECONDARY"
+      );
+      const quantity = quantityElement ? quantityElement.textContent.replace("Quantity", "").trim() : "1";
+      const link = item.querySelector(".item-page-content-link")?.href || "";
+      const brand = "";
+      readyToCopyArr.push({
+        title,
+        price,
+        quantity,
+        link,
+        brand
       });
-      const [title, price, brand] = ebayElementsTextContent;
-      const quantity = 1;
-      const link = window.location.href.split("?")[0];
-      const result = { title, price, quantity, link, brand };
-      document.body.focus();
-      document.addEventListener("keydown", (e) => {
-        if (e.ctrlKey && e.key === "q" || e.key === "\u0439") {
-          copyToClipboard(JSON.stringify(result));
-        }
-      });
-      try {
-        clipboardBtn.addEventListener(
-          "click",
-          () => copyToClipboard(JSON.stringify(result))
-        );
-      } catch (e) {
-        console.error("clipboard button error on click", e);
+    });
+    try {
+      clipboardBtn.addEventListener(
+        "click",
+        () => copyToClipboard(JSON.stringify(readyToCopyArr))
+      );
+    } catch (e) {
+      console.error("clipboard button error on click", e);
+    }
+  }
+  function ebayMain() {
+    try {
+      if (isEbayItem) {
+        handleEbayItem();
+      }
+      if (isEbayOrder) {
+        handleEbayOrder();
       }
     } catch (e) {
       console.error("ebayMain func error", e);
@@ -143,6 +218,38 @@
     }
   }
   let inputs;
+  let easyShipClipboardItemsCount = 0;
+  const pasteBtnClickHandler = (modal) => {
+    navigator.clipboard.readText().then((content) => {
+      const parsedContent = JSON.parse(content);
+      if (Array.isArray(parsedContent) && parsedContent.length > 1) {
+        console.log("parsed content with length > 1", parsedContent);
+        handleInputs(inputs, JSON.stringify(parsedContent[0]));
+        waitForElement("div.shrink.buttons > div > div > span", modal, 1e3).then((addItemNewModalBtn) => {
+          console.log("\u041A\u043D\u043E\u043F\u043A\u0430 \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u0438\u044F \u043D\u0430\u0439\u0434\u0435\u043D\u0430!", addItemNewModalBtn);
+          addItemNewModalBtn.click();
+        }).catch((error) => console.error(error.message));
+        const parsedContentWithoutCurrentItemLength = parsedContent.slice(1).length;
+        easyShipClipboardItemsCount = parsedContentWithoutCurrentItemLength;
+        console.log(
+          "current easyShipClipboardItemsCount",
+          easyShipClipboardItemsCount
+        );
+        const readyToCopyContent = parsedContentWithoutCurrentItemLength > 1 ? JSON.stringify(parsedContent.slice(1)) : JSON.stringify(parsedContent.slice(1)[0]);
+        console.log("readyToCopyContent", readyToCopyContent);
+        copyToClipboard(readyToCopyContent);
+        return;
+      }
+      if (easyShipClipboardItemsCount === 1) {
+        easyShipClipboardItemsCount = 0;
+      }
+      handleInputs(inputs, content);
+      const saveBtn = document.querySelector(
+        "div.shrink.buttons.margin-top-35 > div.button.radius-20.hover-highlight.pos-relative.bg-green-gradient.width-275 > div"
+      );
+      saveBtn.click();
+    }).catch((e) => console.log("clipboard reading error", e));
+  };
   function observeModal(onModalDetected) {
     const modalSelector = 'div[role="dialog"][aria-modal="true"]';
     const observer = new MutationObserver(handleMutations);
@@ -203,13 +310,17 @@
       "pasteBtn"
     );
     document.body.focus();
+    if (easyShipClipboardItemsCount !== 0) {
+      pasteBtnClickHandler(modal);
+      return;
+    }
     document.addEventListener("keydown", (e) => {
       if (e.ctrlKey && e.key === "q" || e.key === "\u0439") {
-        navigator.clipboard.readText().then((content) => handleInputs(inputs, content)).catch((e2) => console.log("clipboard reading error", e2));
+        pasteBtnClickHandler(modal);
       }
     });
     pasteBtn.addEventListener("click", () => {
-      navigator.clipboard.readText().then((content) => handleInputs(inputs, content)).catch((e) => console.log("clipboard reading error", e));
+      pasteBtnClickHandler(modal);
     });
   };
   function easyShipMain() {
