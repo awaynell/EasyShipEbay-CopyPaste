@@ -1,4 +1,4 @@
-import { copyToClipboard, createElement } from "@/utils";
+import { copyToClipboard, createElement, formatPrice } from "@/utils";
 
 const pathname = window.location.pathname;
 
@@ -95,20 +95,25 @@ function handleEbayOrder() {
   orderItems.forEach((item) => {
     const title =
       item.querySelector(".item-title .eui-text-span span")?.textContent || "";
-    const price =
-      item.querySelector(".item-price .eui-text-span span")?.textContent || "";
+
     const quantityElement = item.querySelector(
       ".item-aspect-value .eui-text-span span.SECONDARY"
     );
     const quantity = quantityElement
       ? quantityElement.textContent.replace("Quantity", "").trim()
       : "1";
+    const price =
+      item.querySelector(".item-price .eui-text-span span")?.textContent || "";
     const link = item.querySelector(".item-page-content-link")?.href || "";
     const brand = "";
 
+    const handledPrice = quantityElement
+      ? parseFloat(formatPrice(price)) / Number(quantity)
+      : formatPrice(price);
+
     readyToCopyArr.push({
       title,
-      price,
+      price: String(handledPrice),
       quantity,
       link,
       brand,
