@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        EasyShipEaby-CopyPaste
+// @name        EasyShipEbay-CopyPaste
 // @version     0.2.0
 // @match       https://www.ebay.com/itm/*
 // @match       https://lk.easyship.ru/*
