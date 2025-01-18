@@ -18,7 +18,7 @@ export default defineConfig((config) => {
           name,
           version,
           match: [
-            "https://order.ebay.com/ord/*",
+            "https://order.ebay.com/ord/show*",
             "https://www.ebay.com/itm/*",
             "https://lk.easyship.ru/*",
             "https://creations.mattel.com/*",

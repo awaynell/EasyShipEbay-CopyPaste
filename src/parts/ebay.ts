@@ -1,4 +1,4 @@
-import { copyToClipboard, createElement, formatPrice } from "@/utils";
+import { copyToClipboard, createElement, formatPrice, log } from "@/utils";
 
 const pathname = window.location.pathname;
 
@@ -82,13 +82,11 @@ function handleEbayOrder() {
       zIndex: "1000",
       cursor: "pointer",
     },
-    "item-container-title",
+    "item-card-container",
     "clipboardBtn"
   );
 
   const orderItems = document.querySelectorAll(".item-card");
-
-  console.log("orderItems", orderItems);
 
   const readyToCopyArr: { [key: string]: string }[] = [];
 
@@ -104,7 +102,9 @@ function handleEbayOrder() {
       : "1";
     const price =
       item.querySelector(".item-price .eui-text-span span")?.textContent || "";
-    const link = item.querySelector(".item-page-content-link")?.href || "";
+    const link =
+      (item.querySelector(".item-page-content-link") as HTMLAnchorElement)
+        ?.href || "";
     const brand = "";
 
     const handledPrice = quantityElement
@@ -119,6 +119,8 @@ function handleEbayOrder() {
       brand,
     });
   });
+
+  log.info({ readyToCopyArr, clipboardBtn, orderItems });
 
   try {
     clipboardBtn.addEventListener("click", () =>

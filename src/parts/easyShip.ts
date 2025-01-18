@@ -5,7 +5,7 @@ import {
   waitForElement,
 } from "@/utils";
 
-let inputs: NodeList;
+let inputs: NodeListOf<HTMLInputElement>;
 let easyShipClipboardItemsCount = 0;
 
 const pasteBtnClickHandler = (modal: HTMLDivElement) => {
@@ -14,26 +14,19 @@ const pasteBtnClickHandler = (modal: HTMLDivElement) => {
     .then((content) => {
       const parsedContent = JSON.parse(content);
       if (Array.isArray(parsedContent) && parsedContent.length > 1) {
-        console.log("parsed content with length > 1", parsedContent);
         handleInputs(inputs, JSON.stringify(parsedContent[0]));
         waitForElement("div.shrink.buttons > div > div > span", modal, 1000)
           .then((addItemNewModalBtn) => {
-            console.log("Кнопка добавления найдена!", addItemNewModalBtn);
             addItemNewModalBtn.click();
           })
           .catch((error) => console.error(error.message));
         const parsedContentWithoutCurrentItemLength =
           parsedContent.slice(1).length;
         easyShipClipboardItemsCount = parsedContentWithoutCurrentItemLength;
-        console.log(
-          "current easyShipClipboardItemsCount",
-          easyShipClipboardItemsCount
-        );
         const readyToCopyContent =
           parsedContentWithoutCurrentItemLength > 1
             ? JSON.stringify(parsedContent.slice(1))
             : JSON.stringify(parsedContent.slice(1)[0]);
-        console.log("readyToCopyContent", readyToCopyContent);
         copyToClipboard(readyToCopyContent);
         return;
       }
@@ -43,7 +36,8 @@ const pasteBtnClickHandler = (modal: HTMLDivElement) => {
       handleInputs(inputs, content);
       const saveBtn = document.querySelector(
         "div.shrink.buttons.margin-top-35 > div.button.radius-20.hover-highlight.pos-relative.bg-green-gradient.width-275 > div"
-      );
+      ) as HTMLDivElement;
+
       saveBtn.click();
     })
     .catch((e) => console.log("clipboard reading error", e));
@@ -73,7 +67,7 @@ function observeModal(onModalDetected: (second: Element) => void) {
   return () => observer.disconnect();
 }
 
-function handleInputs(inputs: NodeList, content: string) {
+function handleInputs(inputs: NodeListOf<HTMLInputElement>, content: string) {
   const parsedContent = JSON.parse(content);
 
   const fields = ["title", "brand", "quantity", "price", "link"];

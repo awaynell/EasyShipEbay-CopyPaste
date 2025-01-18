@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        EasyShipEbay-CopyPaste
 // @version     0.2.0
-// @match       https://order.ebay.com/ord/*
+// @match       https://order.ebay.com/ord/show*
 // @match       https://www.ebay.com/itm/*
 // @match       https://lk.easyship.ru/*
 // @match       https://creations.mattel.com/*

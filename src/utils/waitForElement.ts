@@ -2,13 +2,13 @@ export const waitForElement = (
   selector: string,
   parent: Document | Element,
   timeout: number = 5000
-): Promise<Element> => {
+): Promise<HTMLDivElement> => {
   const startTime = Date.now();
   const interval = 100;
 
   return new Promise((resolve, reject) => {
     const checkElement = () => {
-      const element = parent.querySelector(selector);
+      const element = parent.querySelector(selector) as HTMLDivElement;
 
       if (element) {
         resolve(element);

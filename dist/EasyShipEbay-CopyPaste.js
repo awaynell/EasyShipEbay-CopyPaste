@@ -51,6 +51,14 @@
       checkElement();
     });
   };
+  function logger(prefix) {
+    return {
+      error: (message) => console.error(`[${prefix}]`, message),
+      warn: (message) => console.warn(`[${prefix}]`, message),
+      info: (message) => console.log(`[${prefix}]`, message)
+    };
+  }
+  const log = logger("EsEbCp");
   const pathname = window.location.pathname;
   const isEbayItem = pathname.startsWith("/itm");
   const isEbayOrder = pathname.startsWith("/ord");
@@ -119,11 +127,10 @@
         zIndex: "1000",
         cursor: "pointer"
       },
-      "item-container-title",
+      "item-card-container",
       "clipboardBtn"
     );
     const orderItems = document.querySelectorAll(".item-card");
-    console.log("orderItems", orderItems);
     const readyToCopyArr = [];
     orderItems.forEach((item) => {
       const title = item.querySelector(".item-title .eui-text-span span")?.textContent || "";
@@ -143,6 +150,7 @@
         brand
       });
     });
+    log.info({ readyToCopyArr, clipboardBtn, orderItems });
     try {
       clipboardBtn.addEventListener(
         "click",
@@ -212,20 +220,13 @@
     navigator.clipboard.readText().then((content) => {
       const parsedContent = JSON.parse(content);
       if (Array.isArray(parsedContent) && parsedContent.length > 1) {
-        console.log("parsed content with length > 1", parsedContent);
         handleInputs(inputs, JSON.stringify(parsedContent[0]));
         waitForElement("div.shrink.buttons > div > div > span", modal, 1e3).then((addItemNewModalBtn) => {
-          console.log("\u041A\u043D\u043E\u043F\u043A\u0430 \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u0438\u044F \u043D\u0430\u0439\u0434\u0435\u043D\u0430!", addItemNewModalBtn);
           addItemNewModalBtn.click();
         }).catch((error) => console.error(error.message));
         const parsedContentWithoutCurrentItemLength = parsedContent.slice(1).length;
         easyShipClipboardItemsCount = parsedContentWithoutCurrentItemLength;
-        console.log(
-          "current easyShipClipboardItemsCount",
-          easyShipClipboardItemsCount
-        );
         const readyToCopyContent = parsedContentWithoutCurrentItemLength > 1 ? JSON.stringify(parsedContent.slice(1)) : JSON.stringify(parsedContent.slice(1)[0]);
-        console.log("readyToCopyContent", readyToCopyContent);
         copyToClipboard(readyToCopyContent);
         return;
       }
