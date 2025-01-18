@@ -4,6 +4,15 @@ import Userscript from "vite-userscript-plugin";
 
 import { name, version } from "./package.json";
 
+import {
+  match,
+  namespace,
+  description,
+  author,
+  downloadURL,
+  updateURL,
+} from "./src/config/userScriptConfig.json";
+
 export default defineConfig((config) => {
   return {
     resolve: {
@@ -17,16 +26,12 @@ export default defineConfig((config) => {
         header: {
           name,
           version,
-          match: [
-            "https://order.ebay.com/ord/show*",
-            "https://www.ebay.com/itm/*",
-            "https://lk.easyship.ru/*",
-            "https://creations.mattel.com/*",
-          ],
-          namespace: "https://github.com/awaynell/EasyShipEbay-CopyPaste",
-          description:
-            "Объединение двух скриптов для разных сайтов и немножко еще",
-          author: "Clovett",
+          match,
+          namespace,
+          description,
+          author,
+          downloadURL,
+          updateURL,
         },
         esbuildTransformOptions: {
           minify: false,
