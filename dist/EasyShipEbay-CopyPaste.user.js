@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        EasyShipEbay-CopyPaste
-// @version     2025.01.18/0.1
+// @version     2025.01.20/0.1
 // @match       https://order.ebay.com/ord/show*
 // @match       https://www.ebay.com/itm/*
 // @match       https://lk.easyship.ru/*
@@ -131,17 +131,19 @@
       "div",
       "\u0421\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u0442\u044C",
       {
-        position: "relative",
+        position: "fixed",
+        bottom: "25px",
+        right: "25px",
         backgroundColor: "tomato",
         color: "white",
-        padding: "10px 10px",
+        padding: "100px 100px",
         borderRadius: "5px",
         fontSize: "14px",
         boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-        zIndex: "1000",
+        zIndex: "9999",
         cursor: "pointer"
       },
-      "item-card-container",
+      void 0,
       "clipboardBtn"
     );
     const orderItems = document.querySelectorAll(".item-card");
@@ -158,7 +160,7 @@
       const handledPrice = quantityElement ? parseFloat(formatPrice(price)) / Number(quantity) : formatPrice(price);
       readyToCopyArr.push({
         title,
-        price: String(handledPrice),
+        price: handledPrice,
         quantity,
         link,
         brand

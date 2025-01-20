@@ -72,23 +72,25 @@ function handleEbayOrder() {
     "div",
     "Скопировать",
     {
-      position: "relative",
+      position: "fixed",
+      bottom: "25px",
+      right: "25px",
       backgroundColor: "tomato",
       color: "white",
-      padding: "10px 10px",
+      padding: "100px 100px",
       borderRadius: "5px",
       fontSize: "14px",
       boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-      zIndex: "1000",
+      zIndex: "9999",
       cursor: "pointer",
     },
-    "item-card-container",
+    undefined,
     "clipboardBtn"
   );
 
   const orderItems = document.querySelectorAll(".item-card");
 
-  const readyToCopyArr: { [key: string]: string }[] = [];
+  const readyToCopyArr: { [key: string]: string | number }[] = [];
 
   orderItems.forEach((item) => {
     const title =
@@ -113,7 +115,7 @@ function handleEbayOrder() {
 
     readyToCopyArr.push({
       title,
-      price: String(handledPrice),
+      price: handledPrice,
       quantity,
       link,
       brand,
