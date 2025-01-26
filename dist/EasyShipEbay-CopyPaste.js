@@ -139,7 +139,7 @@
       const quantityElement = Array.from(
         document.querySelectorAll(".item-aspect-value")
       )?.find(
-        (element) => element?.textContent?.toLowerCase()?.includes("quantity")
+        (element) => element?.textContent?.toLowerCase()?.includes("Quantity")
       );
       const quantity = quantityElement ? quantityElement.textContent.replace("Quantity", "").trim() : "1";
       const price = item.querySelector(".item-price .eui-text-span span")?.textContent || "";

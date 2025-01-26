@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        EasyShipEbay-CopyPaste
-// @version     2025.01.26/0.1
+// @version     2025.01.26/0.2
 // @match       https://order.ebay.com/ord/show*
 // @match       https://www.ebay.com/itm/*
 // @match       https://lk.easyship.ru/*
@@ -153,7 +153,7 @@
       const quantityElement = Array.from(
         document.querySelectorAll(".item-aspect-value")
       )?.find(
-        (element) => element?.textContent?.toLowerCase()?.includes("quantity")
+        (element) => element?.textContent?.toLowerCase()?.includes("Quantity")
       );
       const quantity = quantityElement ? quantityElement.textContent.replace("Quantity", "").trim() : "1";
       const price = item.querySelector(".item-price .eui-text-span span")?.textContent || "";
