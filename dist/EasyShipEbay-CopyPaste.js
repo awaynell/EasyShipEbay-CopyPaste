@@ -136,15 +136,15 @@
     const readyToCopyArr = [];
     orderItems.forEach((item) => {
       const title = item.querySelector(".item-title .eui-text-span span")?.textContent || "";
-      const quantityElement = item.querySelector(
-        ".item-aspect-value .eui-text-span span.SECONDARY"
-      );
+      const quantityElement = Array.from(
+        document.querySelectorAll(".item-aspect-value")
+      ).find((element) => element.textContent.toLowerCase().includes("quantity"));
       const quantity = quantityElement ? quantityElement.textContent.replace("Quantity", "").trim() : "1";
       const price = item.querySelector(".item-price .eui-text-span span")?.textContent || "";
       const link = item.querySelector(".item-page-content-link")?.href || "";
       const brand = "";
       const handledPrice = quantityElement ? parseFloat(formatPrice(price)) / Number(quantity) : formatPrice(price);
-      log.info({ handledPrice, quantity, title, link, brand });
+      log.info({ handledPrice, quantityElement, quantity, title, link, brand });
       readyToCopyArr.push({
         title,
         price: handledPrice,
