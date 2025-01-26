@@ -113,6 +113,8 @@ function handleEbayOrder() {
       ? parseFloat(formatPrice(price)) / Number(quantity)
       : formatPrice(price);
 
+    log.info({ handledPrice, quantity, title, link, brand });
+
     readyToCopyArr.push({
       title,
       price: handledPrice,

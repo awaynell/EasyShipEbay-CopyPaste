@@ -158,6 +158,7 @@
       const link = item.querySelector(".item-page-content-link")?.href || "";
       const brand = "";
       const handledPrice = quantityElement ? parseFloat(formatPrice(price)) / Number(quantity) : formatPrice(price);
+      log.info({ handledPrice, quantity, title, link, brand });
       readyToCopyArr.push({
         title,
         price: handledPrice,
