@@ -128,7 +128,7 @@ function handleEbayOrder() {
 
     readyToCopyArr.push({
       title,
-      price: handledPrice,
+      price: String(handledPrice),
       quantity,
       link,
       brand,

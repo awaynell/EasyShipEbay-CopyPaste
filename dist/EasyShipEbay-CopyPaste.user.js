@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        EasyShipEbay-CopyPaste
-// @version     2025.01.26/0.3.1
+// @version     2025.01.26/0.3.2
 // @match       https://order.ebay.com/ord/show*
 // @match       https://www.ebay.com/itm/*
 // @match       https://lk.easyship.ru/*
@@ -168,7 +168,7 @@
       });
       readyToCopyArr.push({
         title,
-        price: handledPrice,
+        price: String(handledPrice),
         quantity,
         link,
         brand
