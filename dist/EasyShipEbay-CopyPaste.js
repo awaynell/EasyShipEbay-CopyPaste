@@ -51,14 +51,6 @@
       checkElement();
     });
   };
-  function logger(prefix) {
-    return {
-      error: (message) => console.error(`[${prefix}]`, message),
-      warn: (message) => console.warn(`[${prefix}]`, message),
-      info: (message) => console.log(`[${prefix}]`, message)
-    };
-  }
-  const log = logger("EsEbCp");
   const pathname = window.location.pathname;
   const isEbayItem = pathname.startsWith("/itm");
   const isEbayOrder = pathname.startsWith("/ord");
@@ -143,15 +135,6 @@
       const link = item.querySelector(".item-page-content-link")?.href || "";
       const brand = "";
       const handledPrice = quantityElement ? parseFloat(formatPrice(price)) / Number(quantity) : formatPrice(price);
-      log.info({
-        handledPrice,
-        aspectValues,
-        quantityElement,
-        quantity,
-        title,
-        link,
-        brand
-      });
       readyToCopyArr.push({
         title,
         price: String(handledPrice),
@@ -160,7 +143,6 @@
         brand
       });
     });
-    log.info({ readyToCopyArr, clipboardBtn, orderItems });
     try {
       clipboardBtn.addEventListener(
         "click",

@@ -1,4 +1,4 @@
-import { copyToClipboard, createElement, formatPrice, log } from "@/utils";
+import { copyToClipboard, createElement, formatPrice } from "@/utils";
 
 const pathname = window.location.pathname;
 
@@ -116,16 +116,6 @@ function handleEbayOrder() {
       ? parseFloat(formatPrice(price)) / Number(quantity)
       : formatPrice(price);
 
-    log.info({
-      handledPrice,
-      aspectValues,
-      quantityElement,
-      quantity,
-      title,
-      link,
-      brand,
-    });
-
     readyToCopyArr.push({
       title,
       price: String(handledPrice),
@@ -134,8 +124,6 @@ function handleEbayOrder() {
       brand,
     });
   });
-
-  log.info({ readyToCopyArr, clipboardBtn, orderItems });
 
   try {
     clipboardBtn.addEventListener("click", () =>
