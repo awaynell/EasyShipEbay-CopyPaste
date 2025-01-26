@@ -138,7 +138,9 @@
       const title = item.querySelector(".item-title .eui-text-span span")?.textContent || "";
       const quantityElement = Array.from(
         document.querySelectorAll(".item-aspect-value")
-      ).find((element) => element.textContent.toLowerCase().includes("quantity"));
+      )?.find(
+        (element) => element?.textContent?.toLowerCase()?.includes("quantity")
+      );
       const quantity = quantityElement ? quantityElement.textContent.replace("Quantity", "").trim() : "1";
       const price = item.querySelector(".item-price .eui-text-span span")?.textContent || "";
       const link = item.querySelector(".item-page-content-link")?.href || "";
