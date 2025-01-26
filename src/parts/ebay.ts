@@ -98,9 +98,9 @@ function handleEbayOrder() {
 
     const aspectValues = item.querySelectorAll(".item-aspect-value");
 
-    const quantityElement = Array.from(aspectValues)?.find((element) =>
-      element?.textContent?.toLowerCase()?.includes("Quantity")
-    );
+    const quantityElement = Array.from(aspectValues)
+      .map((element) => element.querySelector(".eui-text-span .SECONDARY"))
+      .find((_) => _.textContent?.includes("Quantity"));
 
     const quantity = quantityElement
       ? quantityElement.textContent.replace("Quantity", "").trim()
