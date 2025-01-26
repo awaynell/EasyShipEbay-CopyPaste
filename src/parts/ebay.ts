@@ -96,9 +96,9 @@ function handleEbayOrder() {
     const title =
       item.querySelector(".item-title .eui-text-span span")?.textContent || "";
 
-    const quantityElement = Array.from(
-      document.querySelectorAll(".item-aspect-value")
-    )?.find((element) =>
+    const aspectValues = item.querySelectorAll(".item-aspect-value");
+
+    const quantityElement = Array.from(aspectValues)?.find((element) =>
       element?.textContent?.toLowerCase()?.includes("Quantity")
     );
 
@@ -116,7 +116,15 @@ function handleEbayOrder() {
       ? parseFloat(formatPrice(price)) / Number(quantity)
       : formatPrice(price);
 
-    log.info({ handledPrice, quantityElement, quantity, title, link, brand });
+    log.info({
+      handledPrice,
+      aspectValues,
+      quantityElement,
+      quantity,
+      title,
+      link,
+      brand,
+    });
 
     readyToCopyArr.push({
       title,

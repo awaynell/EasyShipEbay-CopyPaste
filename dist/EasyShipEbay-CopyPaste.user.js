@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        EasyShipEbay-CopyPaste
-// @version     2025.01.26/0.2
+// @version     2025.01.26/0.3
 // @match       https://order.ebay.com/ord/show*
 // @match       https://www.ebay.com/itm/*
 // @match       https://lk.easyship.ru/*
@@ -150,9 +150,8 @@
     const readyToCopyArr = [];
     orderItems.forEach((item) => {
       const title = item.querySelector(".item-title .eui-text-span span")?.textContent || "";
-      const quantityElement = Array.from(
-        document.querySelectorAll(".item-aspect-value")
-      )?.find(
+      const aspectValues = item.querySelectorAll(".item-aspect-value");
+      const quantityElement = Array.from(aspectValues)?.find(
         (element) => element?.textContent?.toLowerCase()?.includes("Quantity")
       );
       const quantity = quantityElement ? quantityElement.textContent.replace("Quantity", "").trim() : "1";
@@ -160,7 +159,15 @@
       const link = item.querySelector(".item-page-content-link")?.href || "";
       const brand = "";
       const handledPrice = quantityElement ? parseFloat(formatPrice(price)) / Number(quantity) : formatPrice(price);
-      log.info({ handledPrice, quantityElement, quantity, title, link, brand });
+      log.info({
+        handledPrice,
+        aspectValues,
+        quantityElement,
+        quantity,
+        title,
+        link,
+        brand
+      });
       readyToCopyArr.push({
         title,
         price: handledPrice,
