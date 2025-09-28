@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        EasyShipEbay-CopyPaste
-// @version     2025.01.26/0.3.3
+// @version     2025.09.28/0.4
 // @match       https://order.ebay.com/ord/show*
 // @match       https://www.ebay.com/itm/*
 // @match       https://lk.easyship.ru/*
@@ -68,25 +68,58 @@
   const pathname = window.location.pathname;
   const isEbayItem = pathname.startsWith("/itm");
   const isEbayOrder = pathname.startsWith("/ord");
-  function handleEbayItem() {
-    const clipboardBtn = createElement(
+  function convertToSheetsFormat(data) {
+    const items = Array.isArray(data) ? data : [data];
+    const rows = items.map((item) => [
+      item.title || "",
+      item.price || "",
+      item.quantity || "",
+      item.link || "",
+      item.brand || ""
+    ]);
+    const allRows = [...rows];
+    return allRows.map((row) => row.join("	")).join("\n");
+  }
+  function createButton(text, styles, id) {
+    return createElement(
       "div",
-      "\u0421\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u0442\u044C",
+      text,
       {
         position: "fixed",
-        top: "100px",
-        left: "20px",
         backgroundColor: "tomato",
         color: "white",
-        padding: "10px 10px",
+        padding: "10px 15px",
         borderRadius: "5px",
         fontSize: "14px",
         boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
         zIndex: "1000",
-        cursor: "pointer"
+        cursor: "pointer",
+        fontFamily: "Arial, sans-serif",
+        userSelect: "none",
+        ...styles
       },
       void 0,
-      "clipboardBtn"
+      id
+    );
+  }
+  function handleEbayItem() {
+    const jsonBtn = createButton(
+      "JSON",
+      {
+        top: "100px",
+        left: "20px"
+      },
+      "jsonBtn"
+    );
+    const sheetsBtn = createButton(
+      "Sheets",
+      {
+        top: "140px",
+        left: "20px",
+        backgroundColor: "#4285f4"
+        // Google Blue
+      },
+      "sheetsBtn"
     );
     const ebaySelectors = [
       ".x-item-title__mainTitle",
@@ -108,35 +141,45 @@
       if (e.ctrlKey && e.key === "q" || e.key === "\u0439") {
         copyToClipboard(JSON.stringify(result));
       }
+      if (e.ctrlKey && e.shiftKey && (e.key === "Q" || e.key === "\u0419")) {
+        const sheetsData = convertToSheetsFormat(result);
+        copyToClipboard(sheetsData);
+      }
     });
     try {
-      clipboardBtn.addEventListener(
-        "click",
-        () => copyToClipboard(JSON.stringify(result))
-      );
+      jsonBtn.addEventListener("click", () => {
+        copyToClipboard(JSON.stringify(result));
+        showNotification("JSON \u0441\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u043D!");
+      });
+      sheetsBtn.addEventListener("click", () => {
+        const sheetsData = convertToSheetsFormat(result);
+        copyToClipboard(sheetsData);
+        showNotification("\u0414\u0430\u043D\u043D\u044B\u0435 \u0434\u043B\u044F Sheets \u0441\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u043D\u044B!");
+      });
     } catch (e) {
       console.error("clipboard button error on click", e);
     }
   }
   function handleEbayOrder() {
-    const clipboardBtn = createElement(
-      "div",
-      "\u0421\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u0442\u044C",
+    const jsonBtn = createButton(
+      "JSON",
       {
-        position: "fixed",
+        bottom: "80px",
+        right: "25px",
+        padding: "80px 80px"
+      },
+      "jsonBtn"
+    );
+    const sheetsBtn = createButton(
+      "Sheets",
+      {
         bottom: "25px",
         right: "25px",
-        backgroundColor: "tomato",
-        color: "white",
-        padding: "100px 100px",
-        borderRadius: "5px",
-        fontSize: "14px",
-        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-        zIndex: "9999",
-        cursor: "pointer"
+        padding: "80px 80px",
+        backgroundColor: "#4285f4"
+        // Google Blue
       },
-      void 0,
-      "clipboardBtn"
+      "sheetsBtn"
     );
     const orderItems = document.querySelectorAll(".item-card");
     const readyToCopyArr = [];
@@ -158,13 +201,39 @@
       });
     });
     try {
-      clipboardBtn.addEventListener(
-        "click",
-        () => copyToClipboard(JSON.stringify(readyToCopyArr))
-      );
+      jsonBtn.addEventListener("click", () => {
+        copyToClipboard(JSON.stringify(readyToCopyArr));
+        showNotification("JSON \u0441\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u043D!");
+      });
+      sheetsBtn.addEventListener("click", () => {
+        const sheetsData = convertToSheetsFormat(readyToCopyArr);
+        copyToClipboard(sheetsData);
+        showNotification("\u0414\u0430\u043D\u043D\u044B\u0435 \u0434\u043B\u044F Sheets \u0441\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u043D\u044B!");
+      });
     } catch (e) {
       console.error("clipboard button error on click", e);
     }
+  }
+  function showNotification(message) {
+    const notification = createElement("div", message, {
+      position: "fixed",
+      top: "20px",
+      right: "20px",
+      backgroundColor: "#4caf50",
+      color: "white",
+      padding: "10px 20px",
+      borderRadius: "5px",
+      fontSize: "14px",
+      boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+      zIndex: "10000",
+      fontFamily: "Arial, sans-serif"
+    });
+    document.body.appendChild(notification);
+    setTimeout(() => {
+      if (notification && notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 2e3);
   }
   function ebayMain() {
     try {
