@@ -158,9 +158,11 @@ function handleEbayOrder() {
 
   // Массив для JSON (оригинальные данные)
   const readyToCopyArr: { [key: string]: string | number }[] = [];
+  const readyToSheetsArr: { [key: string]: string | number }[] = [];
 
-  // Собираем информацию о товарах и считаем общее количество позиций
-  let totalQuantity = 0;
+  // Собираем информацию о товарах
+  let totalQuantity = 0; // Общее количество всех товаров
+  let positionsCount = 0; // Количество позиций (строк) в заказе
 
   orderItems.forEach((item) => {
     const title =
@@ -182,26 +184,39 @@ function handleEbayOrder() {
         ?.href || "";
     const brand = "";
 
-    const handledPrice = quantityElement
+    const priceForOneItem = quantityElement
       ? parseFloat(formatPrice(price)) / Number(quantity)
       : formatPrice(price);
 
     totalQuantity += Number(quantity);
+    positionsCount++; // Увеличиваем счётчик позиций
 
     readyToCopyArr.push({
       title,
-      price: String(handledPrice),
+      price: String(priceForOneItem),
+      quantity,
+      link,
+      brand,
+    });
+
+    readyToSheetsArr.push({
+      title,
+      priceForAllItems: formatPrice(price),
       quantity,
       link,
       brand,
     });
   });
 
+  log.info("📦 Собранные данные для таблиц (readyToSheetsArr):");
+  log.info(readyToSheetsArr);
+
   // Ищем стоимость доставки на странице
   let shippingPerItem = 0;
   try {
     log.info("🔍 Начинаем искать доставку...");
-    log.info(`📦 Общее количество позиций: ${totalQuantity}`);
+    log.info(`📦 Общее количество товаров: ${totalQuantity}`);
+    log.info(`📦 Количество позиций (строк): ${positionsCount}`);
     
     // Ищем элемент "Shipping" в payment-line-items
     const paymentLineItems = document.querySelector(".payment-line-items");
@@ -235,7 +250,7 @@ function handleEbayOrder() {
             
             if (!isNaN(totalShipping) && totalShipping > 0 && totalQuantity > 0) {
               shippingPerItem = totalShipping / totalQuantity;
-              log.info(`✨ Доставка на одну позицию: ${shippingPerItem}`);
+              log.info(`✨ Доставка на один товар: ${shippingPerItem}`);
             } else {
               log.warn({
                 message: "❌ Не прошла проверка",
@@ -252,18 +267,20 @@ function handleEbayOrder() {
       log.warn("❌ payment-line-items не найден");
     }
     
-    log.info(`📊 Итоговая доставка на позицию: ${shippingPerItem}`);
+    log.info(`📊 Итоговая доставка на один товар: ${shippingPerItem}`);
   } catch (e) {
     log.error(`❌ Ошибка при получении стоимости доставки: ${e}`);
   }
 
   // Отдельный массив для таблиц с доставкой
-  const sheetsDataArr = readyToCopyArr.map((item) => ({
-    title: item.title,
-    quantity: item.quantity,
-    price: item.price,
-    shipping: shippingPerItem > 0 ? shippingPerItem.toFixed(2) : "",
-  }));
+  const sheetsDataArr = readyToSheetsArr.map((item) => {
+    return {
+      title: item.title,
+      quantity: item.quantity,
+      price: item.priceForAllItems,
+      shipping: shippingPerItem ? shippingPerItem.toFixed(2) : "",
+    };
+  });
   
   log.info("📋 Массив для таблиц (sheetsDataArr):");
   log.info(sheetsDataArr);
