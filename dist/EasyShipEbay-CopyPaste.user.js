@@ -70,15 +70,17 @@
   const isEbayOrder = pathname.startsWith("/ord");
   function convertToSheetsFormat(data) {
     const items = Array.isArray(data) ? data : [data];
-    const rows = items.map((item) => [
-      item.title || "",
-      item.price || "",
-      item.quantity || "",
-      item.link || "",
-      item.brand || ""
-    ]);
-    const allRows = [...rows];
-    return allRows.map((row) => row.join("	")).join("\n");
+    const rows = items.map((item) => {
+      const formattedPrice = item.price ? String(item.price).replace(".", ",") : "";
+      const formattedShipping = item.shipping ? String(item.shipping).replace(".", ",") : "";
+      return [
+        item.title || "",
+        item.quantity || "",
+        formattedPrice,
+        formattedShipping
+      ];
+    });
+    return rows.map((row) => row.join("	")).join("\n");
   }
   function createButton(text, styles, id) {
     return createElement(
@@ -183,6 +185,7 @@
     );
     const orderItems = document.querySelectorAll(".item-card");
     const readyToCopyArr = [];
+    let totalQuantity = 0;
     orderItems.forEach((item) => {
       const title = item.querySelector(".item-title .eui-text-span span")?.textContent || "";
       const aspectValues = item.querySelectorAll(".item-aspect-value");
@@ -192,6 +195,7 @@
       const link = item.querySelector(".item-page-content-link")?.href || "";
       const brand = "";
       const handledPrice = quantityElement ? parseFloat(formatPrice(price)) / Number(quantity) : formatPrice(price);
+      totalQuantity += Number(quantity);
       readyToCopyArr.push({
         title,
         price: String(handledPrice),
@@ -200,13 +204,41 @@
         brand
       });
     });
+    let shippingPerItem = 0;
+    try {
+      const shippingSelectors = [
+        ".order-summary-row.shipping .order-summary-value",
+        "[data-test-id='SHIPPING'] .order-summary-value",
+        ".shipping-cost"
+      ];
+      let shippingElement = null;
+      for (const selector of shippingSelectors) {
+        shippingElement = document.querySelector(selector);
+        if (shippingElement) break;
+      }
+      if (shippingElement && shippingElement.textContent) {
+        const shippingText = shippingElement.textContent.trim();
+        const totalShipping = parseFloat(formatPrice(shippingText));
+        if (!isNaN(totalShipping) && totalShipping > 0 && totalQuantity > 0) {
+          shippingPerItem = totalShipping / totalQuantity;
+        }
+      }
+    } catch (e) {
+      console.error("\u041E\u0448\u0438\u0431\u043A\u0430 \u043F\u0440\u0438 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0438\u0438 \u0441\u0442\u043E\u0438\u043C\u043E\u0441\u0442\u0438 \u0434\u043E\u0441\u0442\u0430\u0432\u043A\u0438:", e);
+    }
+    const sheetsDataArr = readyToCopyArr.map((item) => ({
+      title: item.title,
+      quantity: item.quantity,
+      price: item.price,
+      shipping: shippingPerItem > 0 ? shippingPerItem.toFixed(2) : ""
+    }));
     try {
       jsonBtn.addEventListener("click", () => {
         copyToClipboard(JSON.stringify(readyToCopyArr));
         showNotification("JSON \u0441\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u043D!");
       });
       sheetsBtn.addEventListener("click", () => {
-        const sheetsData = convertToSheetsFormat(readyToCopyArr);
+        const sheetsData = convertToSheetsFormat(sheetsDataArr);
         copyToClipboard(sheetsData);
         showNotification("\u0414\u0430\u043D\u043D\u044B\u0435 \u0434\u043B\u044F Sheets \u0441\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u043D\u044B!");
       });

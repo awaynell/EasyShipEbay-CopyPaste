@@ -7,25 +7,26 @@ const isEbayOrder = pathname.startsWith("/ord");
 
 // Функция для конвертации данных в формат для Google Sheets (TSV)
 function convertToSheetsFormat(data: any): string {
-  const headers = ["Title", "Price", "Quantity", "Link", "Brand"];
-
   // Если это один объект, преобразуем в массив
   const items = Array.isArray(data) ? data : [data];
 
   // Создаем строки данных
-  const rows = items.map((item) => [
-    item.title || "",
-    item.price || "",
-    item.quantity || "",
-    item.link || "",
-    item.brand || "",
-  ]);
-
-  // Объединяем заголовки и данные
-  const allRows = [...rows];
+  // Порядок: наименование - количество - ценник - доставка
+  const rows = items.map((item) => {
+    // Форматируем цену: заменяем точку на запятую для Excel
+    const formattedPrice = item.price ? String(item.price).replace(".", ",") : "";
+    const formattedShipping = item.shipping ? String(item.shipping).replace(".", ",") : "";
+    
+    return [
+      item.title || "",
+      item.quantity || "",
+      formattedPrice,
+      formattedShipping,
+    ];
+  });
 
   // Конвертируем в TSV (Tab-separated values)
-  return allRows.map((row) => row.join("\t")).join("\n");
+  return rows.map((row) => row.join("\t")).join("\n");
 }
 
 // Создание кнопки с указанным текстом и стилями
@@ -155,7 +156,11 @@ function handleEbayOrder() {
 
   const orderItems = document.querySelectorAll(".item-card");
 
+  // Массив для JSON (оригинальные данные)
   const readyToCopyArr: { [key: string]: string | number }[] = [];
+
+  // Собираем информацию о товарах и считаем общее количество позиций
+  let totalQuantity = 0;
 
   orderItems.forEach((item) => {
     const title =
@@ -181,6 +186,8 @@ function handleEbayOrder() {
       ? parseFloat(formatPrice(price)) / Number(quantity)
       : formatPrice(price);
 
+    totalQuantity += Number(quantity);
+
     readyToCopyArr.push({
       title,
       price: String(handledPrice),
@@ -190,16 +197,52 @@ function handleEbayOrder() {
     });
   });
 
+  // Ищем стоимость доставки на странице
+  let shippingPerItem = 0;
   try {
-    // JSON кнопка
+    // Пробуем найти элемент с доставкой (может быть разные селекторы)
+    const shippingSelectors = [
+      ".order-summary-row.shipping .order-summary-value",
+      "[data-test-id='SHIPPING'] .order-summary-value",
+      ".shipping-cost",
+    ];
+
+    let shippingElement = null;
+    for (const selector of shippingSelectors) {
+      shippingElement = document.querySelector(selector);
+      if (shippingElement) break;
+    }
+
+    if (shippingElement && shippingElement.textContent) {
+      const shippingText = shippingElement.textContent.trim();
+      const totalShipping = parseFloat(formatPrice(shippingText));
+      
+      if (!isNaN(totalShipping) && totalShipping > 0 && totalQuantity > 0) {
+        shippingPerItem = totalShipping / totalQuantity;
+      }
+    }
+  } catch (e) {
+    console.error("Ошибка при получении стоимости доставки:", e);
+  }
+
+  // Отдельный массив для таблиц с доставкой
+  const sheetsDataArr = readyToCopyArr.map((item) => ({
+    title: item.title,
+    quantity: item.quantity,
+    price: item.price,
+    shipping: shippingPerItem > 0 ? shippingPerItem.toFixed(2) : "",
+  }));
+
+  try {
+    // JSON кнопка - оригинальные данные
     jsonBtn.addEventListener("click", () => {
       copyToClipboard(JSON.stringify(readyToCopyArr));
       showNotification("JSON скопирован!");
     });
 
-    // Google Sheets кнопка
+    // Google Sheets кнопка - данные с доставкой
     sheetsBtn.addEventListener("click", () => {
-      const sheetsData = convertToSheetsFormat(readyToCopyArr);
+      const sheetsData = convertToSheetsFormat(sheetsDataArr);
       copyToClipboard(sheetsData);
       showNotification("Данные для Sheets скопированы!");
     });
