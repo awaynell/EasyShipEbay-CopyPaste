@@ -206,21 +206,22 @@
     });
     let shippingPerItem = 0;
     try {
-      const shippingSelectors = [
-        ".order-summary-row.shipping .order-summary-value",
-        "[data-test-id='SHIPPING'] .order-summary-value",
-        ".shipping-cost"
-      ];
-      let shippingElement = null;
-      for (const selector of shippingSelectors) {
-        shippingElement = document.querySelector(selector);
-        if (shippingElement) break;
-      }
-      if (shippingElement && shippingElement.textContent) {
-        const shippingText = shippingElement.textContent.trim();
-        const totalShipping = parseFloat(formatPrice(shippingText));
-        if (!isNaN(totalShipping) && totalShipping > 0 && totalQuantity > 0) {
-          shippingPerItem = totalShipping / totalQuantity;
+      const paymentLineItems = document.querySelector(".payment-line-items");
+      if (paymentLineItems) {
+        const labelValueLines = paymentLineItems.querySelectorAll(".eui-label-value-line");
+        for (const line of labelValueLines) {
+          const label = line.querySelector("dt");
+          if (label && label.textContent?.includes("Shipping")) {
+            const valueElement = line.querySelector("dd");
+            if (valueElement && valueElement.textContent) {
+              const shippingText = valueElement.textContent.trim();
+              const totalShipping = parseFloat(formatPrice(shippingText));
+              if (!isNaN(totalShipping) && totalShipping > 0 && totalQuantity > 0) {
+                shippingPerItem = totalShipping / totalQuantity;
+              }
+              break;
+            }
+          }
         }
       }
     } catch (e) {
