@@ -65,6 +65,14 @@
       checkElement();
     });
   };
+  function logger(prefix) {
+    return {
+      error: (message) => console.error(`[${prefix}]`, message),
+      warn: (message) => console.warn(`[${prefix}]`, message),
+      info: (message) => console.log(`[${prefix}]`, message)
+    };
+  }
+  const log = logger("EsEbCp");
   const pathname = window.location.pathname;
   const isEbayItem = pathname.startsWith("/itm");
   const isEbayOrder = pathname.startsWith("/ord");
@@ -159,7 +167,7 @@
         showNotification("\u0414\u0430\u043D\u043D\u044B\u0435 \u0434\u043B\u044F Sheets \u0441\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u043D\u044B!");
       });
     } catch (e) {
-      console.error("clipboard button error on click", e);
+      log.error(`clipboard button error on click: ${e}`);
     }
   }
   function handleEbayOrder() {
@@ -206,26 +214,49 @@
     });
     let shippingPerItem = 0;
     try {
+      log.info("\u{1F50D} \u041D\u0430\u0447\u0438\u043D\u0430\u0435\u043C \u0438\u0441\u043A\u0430\u0442\u044C \u0434\u043E\u0441\u0442\u0430\u0432\u043A\u0443...");
+      log.info(`\u{1F4E6} \u041E\u0431\u0449\u0435\u0435 \u043A\u043E\u043B\u0438\u0447\u0435\u0441\u0442\u0432\u043E \u043F\u043E\u0437\u0438\u0446\u0438\u0439: ${totalQuantity}`);
       const paymentLineItems = document.querySelector(".payment-line-items");
+      log.info(`\u{1F4CB} \u041D\u0430\u0439\u0434\u0435\u043D payment-line-items: ${!!paymentLineItems}`);
       if (paymentLineItems) {
         const labelValueLines = paymentLineItems.querySelectorAll(".eui-label-value-line");
+        log.info(`\u{1F4DD} \u041D\u0430\u0439\u0434\u0435\u043D\u043E \u0441\u0442\u0440\u043E\u043A label-value: ${labelValueLines.length}`);
         for (const line of labelValueLines) {
           const label = line.querySelector("dt");
+          const labelText = label?.textContent?.trim();
+          log.info(`\u{1F3F7}\uFE0F \u041F\u0440\u043E\u0432\u0435\u0440\u044F\u0435\u043C label: ${labelText}`);
           if (label && label.textContent?.includes("Shipping")) {
+            log.info("\u2705 \u041D\u0430\u0448\u043B\u0438 \u0441\u0442\u0440\u043E\u043A\u0443 \u0441 Shipping!");
             const valueElement = line.querySelector("dd");
+            const valueText = valueElement?.textContent?.trim();
+            log.info(`\u{1F4B0} \u0422\u0435\u043A\u0441\u0442 \u0437\u043D\u0430\u0447\u0435\u043D\u0438\u044F \u0434\u043E\u0441\u0442\u0430\u0432\u043A\u0438: ${valueText}`);
             if (valueElement && valueElement.textContent) {
               const shippingText = valueElement.textContent.trim();
-              const totalShipping = parseFloat(formatPrice(shippingText));
+              const formattedShipping = formatPrice(shippingText);
+              log.info(`\u{1F527} \u041F\u043E\u0441\u043B\u0435 formatPrice: ${formattedShipping}`);
+              const totalShipping = parseFloat(formattedShipping);
+              log.info(`\u{1F522} totalShipping (\u0447\u0438\u0441\u043B\u043E): ${totalShipping}`);
               if (!isNaN(totalShipping) && totalShipping > 0 && totalQuantity > 0) {
                 shippingPerItem = totalShipping / totalQuantity;
+                log.info(`\u2728 \u0414\u043E\u0441\u0442\u0430\u0432\u043A\u0430 \u043D\u0430 \u043E\u0434\u043D\u0443 \u043F\u043E\u0437\u0438\u0446\u0438\u044E: ${shippingPerItem}`);
+              } else {
+                log.warn({
+                  message: "\u274C \u041D\u0435 \u043F\u0440\u043E\u0448\u043B\u0430 \u043F\u0440\u043E\u0432\u0435\u0440\u043A\u0430",
+                  isNaN: isNaN(totalShipping),
+                  totalShipping,
+                  totalQuantity
+                });
               }
               break;
             }
           }
         }
+      } else {
+        log.warn("\u274C payment-line-items \u043D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D");
       }
+      log.info(`\u{1F4CA} \u0418\u0442\u043E\u0433\u043E\u0432\u0430\u044F \u0434\u043E\u0441\u0442\u0430\u0432\u043A\u0430 \u043D\u0430 \u043F\u043E\u0437\u0438\u0446\u0438\u044E: ${shippingPerItem}`);
     } catch (e) {
-      console.error("\u041E\u0448\u0438\u0431\u043A\u0430 \u043F\u0440\u0438 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0438\u0438 \u0441\u0442\u043E\u0438\u043C\u043E\u0441\u0442\u0438 \u0434\u043E\u0441\u0442\u0430\u0432\u043A\u0438:", e);
+      log.error(`\u274C \u041E\u0448\u0438\u0431\u043A\u0430 \u043F\u0440\u0438 \u043F\u043E\u043B\u0443\u0447\u0435\u043D\u0438\u0438 \u0441\u0442\u043E\u0438\u043C\u043E\u0441\u0442\u0438 \u0434\u043E\u0441\u0442\u0430\u0432\u043A\u0438: ${e}`);
     }
     const sheetsDataArr = readyToCopyArr.map((item) => ({
       title: item.title,
@@ -233,18 +264,25 @@
       price: item.price,
       shipping: shippingPerItem > 0 ? shippingPerItem.toFixed(2) : ""
     }));
+    log.info("\u{1F4CB} \u041C\u0430\u0441\u0441\u0438\u0432 \u0434\u043B\u044F \u0442\u0430\u0431\u043B\u0438\u0446 (sheetsDataArr):");
+    log.info(sheetsDataArr);
     try {
       jsonBtn.addEventListener("click", () => {
         copyToClipboard(JSON.stringify(readyToCopyArr));
         showNotification("JSON \u0441\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u043D!");
       });
       sheetsBtn.addEventListener("click", () => {
+        log.info("\u{1F504} \u041D\u0430\u0436\u0430\u0442\u0430 \u043A\u043D\u043E\u043F\u043A\u0430 Sheets");
+        log.info("\u{1F4CA} \u0414\u0430\u043D\u043D\u044B\u0435 \u0434\u043B\u044F \u043A\u043E\u043D\u0432\u0435\u0440\u0442\u0430\u0446\u0438\u0438:");
+        log.info(sheetsDataArr);
         const sheetsData = convertToSheetsFormat(sheetsDataArr);
+        log.info("\u{1F4CB} \u0420\u0435\u0437\u0443\u043B\u044C\u0442\u0430\u0442 \u043A\u043E\u043D\u0432\u0435\u0440\u0442\u0430\u0446\u0438\u0438:");
+        log.info(sheetsData);
         copyToClipboard(sheetsData);
         showNotification("\u0414\u0430\u043D\u043D\u044B\u0435 \u0434\u043B\u044F Sheets \u0441\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u043D\u044B!");
       });
     } catch (e) {
-      console.error("clipboard button error on click", e);
+      log.error(`clipboard button error on click: ${e}`);
     }
   }
   function showNotification(message) {
@@ -277,7 +315,7 @@
         handleEbayOrder();
       }
     } catch (e) {
-      console.error("ebayMain func error", e);
+      log.error(`ebayMain func error: ${e}`);
     }
   }
   function creationsMattelMain() {

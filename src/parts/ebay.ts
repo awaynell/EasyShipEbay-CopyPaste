@@ -1,4 +1,4 @@
-import { copyToClipboard, createElement, formatPrice } from "@/utils";
+import { copyToClipboard, createElement, formatPrice, log } from "@/utils";
 
 const pathname = window.location.pathname;
 
@@ -126,7 +126,7 @@ function handleEbayItem() {
       showNotification("Данные для Sheets скопированы!");
     });
   } catch (e) {
-    console.error("clipboard button error on click", e);
+    log.error(`clipboard button error on click: ${e}`);
   }
 }
 
@@ -200,32 +200,61 @@ function handleEbayOrder() {
   // Ищем стоимость доставки на странице
   let shippingPerItem = 0;
   try {
+    log.info("🔍 Начинаем искать доставку...");
+    log.info(`📦 Общее количество позиций: ${totalQuantity}`);
+    
     // Ищем элемент "Shipping" в payment-line-items
     const paymentLineItems = document.querySelector(".payment-line-items");
+    log.info(`📋 Найден payment-line-items: ${!!paymentLineItems}`);
     
     if (paymentLineItems) {
       // Находим все строки с label-value
       const labelValueLines = paymentLineItems.querySelectorAll(".eui-label-value-line");
+      log.info(`📝 Найдено строк label-value: ${labelValueLines.length}`);
       
       for (const line of labelValueLines) {
         const label = line.querySelector("dt");
+        const labelText = label?.textContent?.trim();
+        log.info(`🏷️ Проверяем label: ${labelText}`);
+        
         if (label && label.textContent?.includes("Shipping")) {
+          log.info("✅ Нашли строку с Shipping!");
+          
           // Нашли строку с "Shipping", теперь берём значение из dd
           const valueElement = line.querySelector("dd");
+          const valueText = valueElement?.textContent?.trim();
+          log.info(`💰 Текст значения доставки: ${valueText}`);
+          
           if (valueElement && valueElement.textContent) {
             const shippingText = valueElement.textContent.trim();
-            const totalShipping = parseFloat(formatPrice(shippingText));
+            const formattedShipping = formatPrice(shippingText);
+            log.info(`🔧 После formatPrice: ${formattedShipping}`);
+            
+            const totalShipping = parseFloat(formattedShipping);
+            log.info(`🔢 totalShipping (число): ${totalShipping}`);
             
             if (!isNaN(totalShipping) && totalShipping > 0 && totalQuantity > 0) {
               shippingPerItem = totalShipping / totalQuantity;
+              log.info(`✨ Доставка на одну позицию: ${shippingPerItem}`);
+            } else {
+              log.warn({
+                message: "❌ Не прошла проверка",
+                isNaN: isNaN(totalShipping),
+                totalShipping,
+                totalQuantity
+              });
             }
             break;
           }
         }
       }
+    } else {
+      log.warn("❌ payment-line-items не найден");
     }
+    
+    log.info(`📊 Итоговая доставка на позицию: ${shippingPerItem}`);
   } catch (e) {
-    console.error("Ошибка при получении стоимости доставки:", e);
+    log.error(`❌ Ошибка при получении стоимости доставки: ${e}`);
   }
 
   // Отдельный массив для таблиц с доставкой
@@ -235,6 +264,9 @@ function handleEbayOrder() {
     price: item.price,
     shipping: shippingPerItem > 0 ? shippingPerItem.toFixed(2) : "",
   }));
+  
+  log.info("📋 Массив для таблиц (sheetsDataArr):");
+  log.info(sheetsDataArr);
 
   try {
     // JSON кнопка - оригинальные данные
@@ -245,12 +277,17 @@ function handleEbayOrder() {
 
     // Google Sheets кнопка - данные с доставкой
     sheetsBtn.addEventListener("click", () => {
+      log.info("🔄 Нажата кнопка Sheets");
+      log.info("📊 Данные для конвертации:");
+      log.info(sheetsDataArr);
       const sheetsData = convertToSheetsFormat(sheetsDataArr);
+      log.info("📋 Результат конвертации:");
+      log.info(sheetsData);
       copyToClipboard(sheetsData);
       showNotification("Данные для Sheets скопированы!");
     });
   } catch (e) {
-    console.error("clipboard button error on click", e);
+    log.error(`clipboard button error on click: ${e}`);
   }
 }
 
@@ -289,6 +326,6 @@ export function ebayMain() {
       handleEbayOrder();
     }
   } catch (e) {
-    console.error("ebayMain func error", e);
+    log.error(`ebayMain func error: ${e}`);
   }
 }
