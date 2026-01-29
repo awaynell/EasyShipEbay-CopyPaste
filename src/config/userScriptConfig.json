@@ -3,6 +3,7 @@
     "https://order.ebay.com/ord/show*",
     "https://www.ebay.com/itm/*",
     "https://lk.easyship.ru/*",
+    "https://lk1.easyship.ru/*",
     "https://creations.mattel.com/*"
   ],
   "namespace": "https://github.com/awaynell/EasyShipEbay-CopyPaste",

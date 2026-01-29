@@ -1,9 +1,10 @@
 // ==UserScript==
 // @name        EasyShipEbay-CopyPaste
-// @version     2025.09.28/0.4
+// @version     2025.01.29/0.4.1
 // @match       https://order.ebay.com/ord/show*
 // @match       https://www.ebay.com/itm/*
 // @match       https://lk.easyship.ru/*
+// @match       https://lk1.easyship.ru/*
 // @match       https://creations.mattel.com/*
 // @namespace   https://github.com/awaynell/EasyShipEbay-CopyPaste
 // @description Объединение двух скриптов для разных сайтов и немножко еще
